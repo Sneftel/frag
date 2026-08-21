@@ -1,0 +1,11 @@
+{
+  "cmake.configurePreset": "dos-watcom",
+  "cmake.environment": {
+    "PATH": "C:\\WATCOM\\BINNT64;C:\\WATCOM\\BINNT;${env:PATH}",
+    "INCLUDE": "C:\\WATCOM\\H",
+    "WATCOM": "C:\\WATCOM",
+    "EDPATH": "C:\\WATCOM\\EDDAT",
+    "WHTMLHELP": "C:\\WATCOM\\BINNT\\HELP",
+    "WIPFC": "C:\\WATCOM\\WIPFC"
+  }
+}

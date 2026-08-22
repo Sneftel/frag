@@ -8,7 +8,7 @@
       "binaryDir": "${sourceDir}/build",
       "environment": {
         "PATH": "C:\\WATCOM\\BINNT64;C:\\WATCOM\\BINNT;$penv{PATH}",
-        "INCLUDE": "C:\\WATCOM\\H;C:\\WATCOM\\H\\NT;C:\\WATCOM\\H\\NT\\DIRECTX;C:\\WATCOM\\H\\NT\\DDK;$penv{INCLUDE}",
+        "INCLUDE": "C:\\WATCOM\\H",
         "WATCOM": "C:\\WATCOM",
         "EDPATH": "C:\\WATCOM\\EDDAT",
         "WHTMLHELP": "C:\\WATCOM\\BINNT\\HELP",

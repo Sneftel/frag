@@ -81,6 +81,7 @@ struct DriveInfo getDriveInfo(unsigned char driveNumber)
 
     driveInfo.numFatCopies = bootSector.fatCopies;
     driveInfo.numSectorsPerFat = bootSector.sectorsPerFat;
+    driveInfo.numSectorsPerCluster = bootSector.sectorsPerCluster;
 
     return driveInfo;
 }

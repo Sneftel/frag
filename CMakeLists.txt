@@ -6,6 +6,8 @@ add_executable(frag
 	laymake.h laymake.c
 	drvinfo.h drvinfo.c
 	dosutil.h dosutil.c
+	bitfield.h bitfield.c
+	hdcache.h hdcache.c
 	structs.h
 	util.h
 )

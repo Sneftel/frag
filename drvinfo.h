@@ -22,8 +22,14 @@ struct DriveInfo
     /** The number of free clusters in the fat. */
     unsigned int numFreeClusters;
 
+    /** Number of copies of the fat stored on disk */
     unsigned int numFatCopies;
+
+    /** Number of sectors each copy of the fat takes up */
     unsigned int numSectorsPerFat;
+
+    /** Size of each cluster, in sectors */
+    unsigned int numSectorsPerCluster;
 };
 
 /** Read info for a drive. The drive must be FAT16 and have no subdirectories and no bad clusters. */

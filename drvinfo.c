@@ -5,11 +5,6 @@
 #include <stdlib.h>
 #include <assert.h>
 
-static int isDirectory(struct DirectoryEntry* directoryEntry)
-{
-    return directoryEntry->attributes & (1<<4);
-}
-
 struct DriveInfo getDriveInfo(unsigned char driveNumber)
 {
     struct DriveInfo driveInfo;
@@ -20,7 +15,7 @@ struct DriveInfo getDriveInfo(unsigned char driveNumber)
 
     driveInfo.driveNumber = driveNumber;
 
-    getClusterInfo(driveNumber, &driveInfo.numClusters, &driveInfo.numFreeClusters);
+    driveInfo.numClusters = getNumClusters(driveNumber);
 
     absread(driveNumber, 1, 0, &bootSector);
 

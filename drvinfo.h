@@ -11,9 +11,6 @@ struct DriveInfo
     /** The total number of entries in the root directory table, including those which have never been assigned. */
     unsigned int numDirectoryEntries;
 
-    /** The number of free clusters in the fat. */
-    unsigned int numFreeClusters;
-
     /** Number of copies of the fat stored on disk */
     unsigned int numFatCopies;
 

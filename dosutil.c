@@ -85,13 +85,19 @@ void abswritesmall(unsigned char driveNumber, unsigned int numBytes, unsigned lo
     abswrite(driveNumber, 1, sectorNum, sectorBytes);
 }
 
-void getClusterInfo(unsigned char driveNumber, unsigned int* totalClustersOut, unsigned int* freeClustersOut)
+unsigned int getNumClusters(unsigned char driveNumber)
 {
     union REGPACK regs;
     regs.h.dl = driveNumber+1;
     regs.h.ah = 0x36;
     intr(0x21, &regs);
     assert(regs.w.ax != 0xFFFFu);
-    *totalClustersOut = regs.w.dx;
-    *freeClustersOut = regs.w.bx;
+    return regs.w.dx + 2; /* we treat the two reserved clusters as "real" */
+}
+
+void diskReset()
+{
+    union REGPACK regs;
+    regs.h.ah = 0x0D;
+    intr(0x21, &regs);
 }

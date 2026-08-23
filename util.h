@@ -7,7 +7,7 @@
 
 static unsigned long calcRootDirectorySectors(int numEntries)
 {
-    unsigned long rootDirectorySize = numEntries * sizeof(struct DirectoryEntry);
+    unsigned long rootDirectorySize = (unsigned long)numEntries * sizeof(struct DirectoryEntry);
     return rootDirectorySize / SECTOR_SIZE;
 }
 

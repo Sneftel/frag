@@ -6,6 +6,7 @@
 #include "bitfield.h"
 #include "drvinfo.h"
 #include "laymake.h"
+#include "dosutil.h"
 
 static void sampleFreeSpace(struct Bitfield const* allocated, unsigned int numClusters, int maxLength, unsigned int* startClusterOut, unsigned int* lengthOut)
 {
@@ -48,6 +49,9 @@ int main(int argc, char** argv)
     struct Bitfield* clustersAllocated;
     unsigned int numFreeClusters;
     unsigned int targetNumFreeClusters;
+
+    /* invalidate buffers in case the FAT is cached */
+    diskReset();
 
     randomize();
 

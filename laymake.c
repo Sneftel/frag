@@ -38,7 +38,7 @@ struct LayoutMaker* createLayoutMaker(struct DriveInfo* origDriveInfo)
 
     /* clear the current fat (first copy only, others will be set later */
     memset(clearedFatSector, 0, SECTOR_SIZE);
-    clearedFatSector[0] = 0xFFFFu;
+    clearedFatSector[0] = 0xFFF8u;
     clearedFatSector[1] = 0xFFFFu;
 
     for(i=0; i<origDriveInfo->numSectorsPerFat; i++)
@@ -83,6 +83,7 @@ void assignClusterToEntry(struct LayoutMaker* layoutMaker, unsigned int clusterI
         fileInfo->lastCluster = clusterIndex;
     }
     writeFatValue(layoutMaker->origDriveInfo->driveNumber, clusterIndex, 0xFFFF);
+    fileInfo->numClusters++;
 }
 
 void applyLayout(struct LayoutMaker* layoutMaker)
@@ -91,7 +92,6 @@ void applyLayout(struct LayoutMaker* layoutMaker)
     unsigned long rootDirectorySectorBase;
     int i, j;
     unsigned long clusterSize;
-    char filename[9];
 
     cacheFlush();
 
@@ -104,7 +104,7 @@ void applyLayout(struct LayoutMaker* layoutMaker)
     for(i=0; i<layoutMaker->origDriveInfo->numDirectoryEntries; i++)
     {
         memset(&directoryEntries[i], 0, sizeof(struct DirectoryEntry));
-        /* Fills filename and extension*/
+        /* Fills filename and extension. Also overruns into the attribute field, but benignly. */
         sprintf(directoryEntries[i].filename, "%08d000", i);
         directoryEntries[i].firstCluster = layoutMaker->fileInfos[i].firstCluster;
         directoryEntries[i].fileSize = layoutMaker->fileInfos[i].numClusters * clusterSize;

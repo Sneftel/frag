@@ -10,8 +10,10 @@ void abswrite(unsigned char driveNumber, unsigned int numSectors, unsigned long 
 /* Writes some bytes to anywhere on a partition. */
 void abswritesmall(unsigned char driveNumber, unsigned int numBytes, unsigned long sector, unsigned int offset, void* dataIn);
 
-/* Get the total number of clusters, and the number of free clusters, for a partition. */
-void getClusterInfo(unsigned char driveNumber, unsigned int* totalClustersOut, unsigned int* freeClustersOut);
+/* Get the total number of clusters (including reserved clusters) for a partition. */
+unsigned int getNumClusters(unsigned char driveNumber);
+
+void diskReset();
 
 #endif
 

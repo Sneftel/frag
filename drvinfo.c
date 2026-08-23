@@ -9,7 +9,6 @@ struct DriveInfo getDriveInfo(unsigned char driveNumber)
 {
     struct DriveInfo driveInfo;
     long fileInfoSectorBase;
-    struct DirectoryEntry* directoryEntries;
     struct BootSector bootSector;
     int i;
 
@@ -21,11 +20,6 @@ struct DriveInfo getDriveInfo(unsigned char driveNumber)
 
     driveInfo.numDirectoryEntries = bootSector.rootEntries;
     fileInfoSectorBase = 1 + bootSector.fatCopies * bootSector.sectorsPerFat;
-    directoryEntries = malloc(sizeof(struct DirectoryEntry) * bootSector.rootEntries);
-    assert(directoryEntries);
-    absread(driveNumber, calcRootDirectorySectors(bootSector.rootEntries), fileInfoSectorBase, directoryEntries);
-
-    free(directoryEntries);
 
     driveInfo.numFatCopies = bootSector.fatCopies;
     driveInfo.numSectorsPerFat = bootSector.sectorsPerFat;

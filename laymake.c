@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#include <malloc.h>
 
 #include "laymake.h"
 #include "structs.h"
@@ -21,6 +22,7 @@ struct LayoutMaker
 {
     struct DriveInfo* origDriveInfo;
     struct FileInfo* fileInfos;
+    unsigned int huge* fat;
 };
 
 struct LayoutMaker* createLayoutMaker(struct DriveInfo* origDriveInfo)
@@ -36,10 +38,13 @@ struct LayoutMaker* createLayoutMaker(struct DriveInfo* origDriveInfo)
 
     memset(layoutMaker->fileInfos, 0, sizeof(struct FileInfo) * origDriveInfo->numDirectoryEntries);
 
-    /* clear the current fat (first copy only, others will be set later */
-    memset(clearedFatSector, 0, SECTOR_SIZE);
-    clearedFatSector[0] = 0xFFF8u;
-    clearedFatSector[1] = 0xFFFFu;
+    layoutMaker->fat = halloc(origDriveInfo->numClusters, sizeof(unsigned int));
+    layoutMaker->fat[0] = 0xFFF8u;
+    layoutMaker->fat[1] = 0xFFFFu;
+    for(i=2; i<origDriveInfo->numClusters; i++)
+    {
+        layoutMaker->fat[i] = 0;
+    }
 
     for(i=0; i<origDriveInfo->numSectorsPerFat; i++)
     {
@@ -79,10 +84,10 @@ void assignClusterToEntry(struct LayoutMaker* layoutMaker, unsigned int clusterI
     }
     else
     {
-        writeFatValue(layoutMaker->origDriveInfo->driveNumber, fileInfo->lastCluster, clusterIndex);
+        layoutMaker->fat[fileInfo->lastCluster] = clusterIndex;
         fileInfo->lastCluster = clusterIndex;
     }
-    writeFatValue(layoutMaker->origDriveInfo->driveNumber, clusterIndex, 0xFFFF);
+    layoutMaker->fat[clusterIndex] = 0xFFFFu;
     fileInfo->numClusters++;
 }
 
@@ -100,7 +105,7 @@ void applyLayout(struct LayoutMaker* layoutMaker)
     /* update root directory entries */
     rootDirectorySectorBase = 1 + layoutMaker->origDriveInfo->numFatCopies * layoutMaker->origDriveInfo->numSectorsPerFat;
     directoryEntries = malloc(sizeof(struct DirectoryEntry) * layoutMaker->origDriveInfo->numDirectoryEntries);
-    absread(layoutMaker->origDriveInfo->driveNumber, calcRootDirectorySectors(layoutMaker->origDriveInfo->numDirectoryEntries), rootDirectorySectorBase, directoryEntries);
+
     for(i=0; i<layoutMaker->origDriveInfo->numDirectoryEntries; i++)
     {
         memset(&directoryEntries[i], 0, sizeof(struct DirectoryEntry));
@@ -114,11 +119,14 @@ void applyLayout(struct LayoutMaker* layoutMaker)
     free(directoryEntries);
     directoryEntries = 0;
 
-    /* copy first FAT into other FAT copies, a sector at a time */
+    /* write fat, a sector at a time */
     for(i=0; i<layoutMaker->origDriveInfo->numSectorsPerFat; i++)
     {
         unsigned char sector[SECTOR_SIZE];
-        absread(layoutMaker->origDriveInfo->driveNumber, 1, i+1, sector);
+        for(j=0; j<FAT_ENTRIES_PER_SECTOR; j++)
+        {
+            sector[j] = layoutMaker->fat[(i << FAT_ENTRIES_PER_SECTOR_BITS) | j];
+        }
         for(j=1; j<layoutMaker->origDriveInfo->numFatCopies; j++)
         {
             abswrite(layoutMaker->origDriveInfo->driveNumber, 1, 1+layoutMaker->origDriveInfo->numSectorsPerFat*j + i, sector);

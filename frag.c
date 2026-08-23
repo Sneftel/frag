@@ -22,7 +22,7 @@ static void sampleFreeSpace(struct Bitfield const* allocated, unsigned int numCl
     }
     
     desiredEndCluster = startCluster+maxLength;
-    if(desiredEndCluster < startCluster || desiredEndCluster > numClusters);
+    if(desiredEndCluster < startCluster || desiredEndCluster > numClusters)
     {
         desiredEndCluster = numClusters;
     }

@@ -17,33 +17,37 @@ typedef struct AbsDiskPacket
 
 static int absReadInterrupt(unsigned char driveNumber, const AbsDiskPacket __far* packet);
 #pragma aux absReadInterrupt = \
-    "mov si, ds" \
-    "mov dx, es" \
-    "mov ds, dx" \
+    "push ds" \
+    "push bp" \
+    "push es" \
+    "pop ds" \
     "mov cx, 0ffffh" \
     "int 25h" \
     "sbb dx, dx" \
     "popf" \
-    "mov ds, si" \
+    "pop bp" \
+    "pop ds" \
     "and ax, dx" \
     parm [al] [es bx] \
     value [ax] \
-    modify exact [ax cx dx si];
+    modify exact [ax bx cx dx si di];
 
 static int absWriteInterrupt(unsigned char driveNumber, const AbsDiskPacket __far* packet);
 #pragma aux absWriteInterrupt = \
-    "mov si, ds" \
-    "mov dx, es" \
-    "mov ds, dx" \
+    "push ds" \
+    "push bp" \
+    "push es" \
+    "pop ds" \
     "mov cx, 0ffffh" \
     "int 26h" \
     "sbb dx, dx" \
     "popf" \
-    "mov ds, si" \
+    "pop bp" \
+    "pop ds" \
     "and ax, dx" \
     parm [al] [es bx] \
     value [ax] \
-    modify exact [ax cx dx si];
+    modify exact [ax bx cx dx si di];
 
 void absread(unsigned char driveNumber, unsigned int numSectors, unsigned long startSector, void* dataOut)
 {

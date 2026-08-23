@@ -14,7 +14,7 @@ static void sampleFreeSpace(struct Bitfield const* allocated, unsigned int numCl
     unsigned int desiredEndCluster;
     unsigned int endCluster;
 
-    startCluster = (rand() << 1) % numClusters;
+    startCluster = ((unsigned int)rand() << 1) % numClusters;
     startCluster = scanForZeroBit(allocated, startCluster, numClusters);
     if(startCluster == numClusters)
     {
@@ -90,6 +90,8 @@ int main(int argc, char** argv)
     }
 
     applyLayout(layoutMaker);
+
+    diskReset();
 
     return 0;
 }

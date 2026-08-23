@@ -95,7 +95,7 @@ void applyLayout(struct LayoutMaker* layoutMaker)
 
     cacheFlush();
 
-    clusterSize = layoutMaker->origDriveInfo->numSectorsPerCluster * SECTOR_SIZE;
+    clusterSize = (unsigned long)layoutMaker->origDriveInfo->numSectorsPerCluster * SECTOR_SIZE;
 
     /* update root directory entries */
     rootDirectorySectorBase = 1 + layoutMaker->origDriveInfo->numFatCopies * layoutMaker->origDriveInfo->numSectorsPerFat;

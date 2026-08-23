@@ -10,6 +10,7 @@
 static void sampleFreeSpace(struct Bitfield const* allocated, unsigned int numClusters, int maxLength, unsigned int* startClusterOut, unsigned int* lengthOut)
 {
     unsigned int startCluster;
+    unsigned int desiredEndCluster;
     unsigned int endCluster;
 
     startCluster = rand() % numClusters;
@@ -19,8 +20,13 @@ static void sampleFreeSpace(struct Bitfield const* allocated, unsigned int numCl
         startCluster = scanForZeroBit(allocated, 0, numClusters);
         assert(startCluster != numClusters);
     }
-
-    endCluster = scanForOneBit(allocated, startCluster, min(startCluster+maxLength, numClusters));
+    
+    desiredEndCluster = startCluster+maxLength;
+    if(desiredEndCluster < startCluster || desiredEndCluster > numClusters);
+    {
+        desiredEndCluster = numClusters;
+    }
+    endCluster = scanForOneBit(allocated, startCluster, desiredEndCluster);
 
     *startClusterOut = startCluster;
     *lengthOut = endCluster-startCluster;
@@ -45,8 +51,8 @@ int main(int argc, char** argv)
 
     randomize();
 
-    driveInfo = getDriveInfo('D');
-    numFreeClusters = driveInfo.numClusters;
+    driveInfo = getDriveInfo(3); /* D drive */
+    numFreeClusters = driveInfo.numClusters - 2; /* Account for reserved clusters */
     // Targeting 75% utilization
     targetNumFreeClusters = (numFreeClusters >> 2);
     layoutMaker = createLayoutMaker(&driveInfo);
@@ -73,6 +79,8 @@ int main(int argc, char** argv)
         {
             assignClusterToEntry(layoutMaker, startCluster+i, entryIndex);
         }
+
+        setBits(clustersAllocated, startCluster, numClustersToFill);
 
         numFreeClusters -= numClustersToFill;
     }

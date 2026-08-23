@@ -7,7 +7,6 @@
 
 #include "laymake.h"
 #include "structs.h"
-#include "hdcache.h"
 #include "dosutil.h"
 #include "util.h"
 
@@ -60,17 +59,6 @@ struct LayoutMaker* createLayoutMaker(struct DriveInfo* origDriveInfo)
 #define FAT_ENTRIES_PER_SECTOR 256
 #define FAT_ENTRIES_PER_SECTOR_BITS 8
 
-static void writeFatValue(unsigned char driveNumber, unsigned int cluster, unsigned int value)
-{
-    unsigned int sectorNum;
-    unsigned int offset;
-
-    sectorNum = 1 + (cluster >> FAT_ENTRIES_PER_SECTOR_BITS); /* num FAT entries per sector */
-    offset = (cluster & (FAT_ENTRIES_PER_SECTOR - 1)) * sizeof(unsigned int);
-
-    cacheWrite(driveNumber, sizeof(unsigned int), sectorNum, offset, &value);
-}
-
 void assignClusterToEntry(struct LayoutMaker* layoutMaker, unsigned int clusterIndex, unsigned int entryIndex)
 {
     struct FileInfo* fileInfo = layoutMaker->fileInfos+entryIndex;
@@ -95,10 +83,8 @@ void applyLayout(struct LayoutMaker* layoutMaker)
 {
     struct DirectoryEntry* directoryEntries;
     unsigned long rootDirectorySectorBase;
-    int i, j;
+    unsigned int i, j;
     unsigned long clusterSize;
-
-    cacheFlush();
 
     clusterSize = (unsigned long)layoutMaker->origDriveInfo->numSectorsPerCluster * SECTOR_SIZE;
 
@@ -122,7 +108,7 @@ void applyLayout(struct LayoutMaker* layoutMaker)
     /* write fat, a sector at a time */
     for(i=0; i<layoutMaker->origDriveInfo->numSectorsPerFat; i++)
     {
-        unsigned char sector[SECTOR_SIZE];
+        unsigned int sector[FAT_ENTRIES_PER_SECTOR];
         for(j=0; j<FAT_ENTRIES_PER_SECTOR; j++)
         {
             sector[j] = layoutMaker->fat[(i << FAT_ENTRIES_PER_SECTOR_BITS) | j];

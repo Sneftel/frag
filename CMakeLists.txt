@@ -7,6 +7,7 @@ add_executable(frag
 	drvinfo.h drvinfo.c
 	dosutil.h dosutil.c
 	bitfield.h bitfield.c
+	options.h options.c
 	structs.h
 	util.h
 )

@@ -2,11 +2,13 @@
 #include <dos.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "bitfield.h"
 #include "drvinfo.h"
 #include "laymake.h"
 #include "dosutil.h"
+#include "options.h"
 
 static void sampleFreeSpace(struct Bitfield const* allocated, unsigned int numClusters, int maxLength, unsigned int* startClusterOut, unsigned int* lengthOut)
 {
@@ -40,8 +42,6 @@ static void randomize()
     srand(time.second | (time.minute << 8));
 }
 
-#define MAX_RUN_LENGTH 16
-
 int main(int argc, char** argv)
 {
     struct DriveInfo driveInfo;
@@ -50,20 +50,49 @@ int main(int argc, char** argv)
     unsigned int numFreeClusters;
     unsigned int targetNumFreeClusters;
 
+    if(!processOptions(argc, argv))
+    {
+        printUsage(argv[0]);
+        exit(1);
+    }
+
+    if(option_minRunLength >= option_maxRunLength)
+    {
+        printf("Invalid runlength interval.\n");
+        exit(1);
+    }
+
+    printf("Initializing...\n");
+
     /* invalidate buffers in case the FAT is cached */
     diskReset();
 
     randomize();
 
     driveInfo = getDriveInfo(3); /* D drive */
+
+    if(strcmp(driveInfo.volumeLabel, option_driveLabel) != 0)
+    {
+        printf("Volume label was '%s', expected '%s'\n", driveInfo.volumeLabel, option_driveLabel);
+        exit(1);
+    }
+
+    if(option_fileCount > driveInfo.numDirectoryEntries-1)
+    {
+        printf("File count of %d requested, max is %d", option_fileCount, driveInfo.numDirectoryEntries-1);
+    }
+
     numFreeClusters = driveInfo.numClusters - 2; /* Account for reserved clusters */
     // Targeting 75% utilization
-    targetNumFreeClusters = (numFreeClusters >> 2);
+    targetNumFreeClusters = numFreeClusters * (100ul - option_utilizationPercentage) / 100;
+
     layoutMaker = createLayoutMaker(&driveInfo);
 
     clustersAllocated = allocateBitfield(driveInfo.numClusters);
     /* reserve first 2 clusters */
     setBits(clustersAllocated, 0, 2);
+
+    printf("Filling clusters...\n");
 
     while(numFreeClusters > targetNumFreeClusters)
     {
@@ -73,11 +102,18 @@ int main(int argc, char** argv)
         unsigned int desiredNumClustersToFill;
         int i;
 
-        desiredNumClustersToFill = ((rand() >> 5) % MAX_RUN_LENGTH) + 1;
+        if(option_maxRunLength == option_minRunLength)
+        {
+            desiredNumClustersToFill = option_minRunLength;
+        }
+        else
+        {
+            desiredNumClustersToFill = (rand() % (option_maxRunLength-option_minRunLength)) + option_minRunLength;
+        }
 
         sampleFreeSpace(clustersAllocated, driveInfo.numClusters, desiredNumClustersToFill, &startCluster, &numClustersToFill);
 
-        entryIndex = rand() % driveInfo.numDirectoryEntries;
+        entryIndex = rand() % (option_fileCount-1) + 1;
 
         for(i=0; i<numClustersToFill; i++)
         {
@@ -89,7 +125,11 @@ int main(int argc, char** argv)
         numFreeClusters -= numClustersToFill;
     }
 
+    printf("Applying layout...\n");
+
     applyLayout(layoutMaker);
+
+    printf("Done.\n");
 
     diskReset();
 

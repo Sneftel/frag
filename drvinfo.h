@@ -19,6 +19,9 @@ struct DriveInfo
 
     /** Size of each cluster, in sectors */
     unsigned int numSectorsPerCluster;
+
+    /** The volume label, null-terminated */
+    char volumeLabel[12];
 };
 
 /** Read info for a drive. The drive must be FAT16 and have no subdirectories and no bad clusters. */

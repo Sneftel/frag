@@ -19,8 +19,8 @@
         "CMAKE_CXX_COMPILER": "C:\\WATCOM\\BINNT64\\wcl.exe",
         "CMAKE_LINKER": "C:\\WATCOM\\BINNT64\\wlink.exe",
         "CMAKE_COMPILE_WARNING_AS_ERROR": true,
-        "CMAKE_C_FLAGS": "-bt=dos -ml",
-        "CMAKE_CXX_FLAGS": "-bt=dos -xs -ml",
+        "CMAKE_C_FLAGS": "-bt=dos -ml -ox",
+        "CMAKE_CXX_FLAGS": "-bt=dos -xs -ml -ox",
         "CMAKE_EXE_LINKER_FLAGS": "system dos",
         "CMAKE_SYSTEM_NAME": "DOS",
         "CMAKE_SYSTEM_PROCESSOR": "I86"

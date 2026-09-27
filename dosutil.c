@@ -91,7 +91,12 @@ unsigned int getNumClusters(unsigned char driveNumber)
     regs.h.dl = driveNumber+1;
     regs.h.ah = 0x36;
     intr(0x21, &regs);
-    assert(regs.w.ax != 0xFFFFu);
+    if(regs.w.ax == 0xFFFFu)
+    {
+        printf("Error getting the number of clusters on the target drive\n");
+        exit(1);
+    }
+    
     return regs.w.dx + 2; /* we treat the two reserved clusters as "real" */
 }
 

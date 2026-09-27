@@ -42,3 +42,10 @@ FAT16, such as unusual numbers of reserved sectors, are not supported either.
 FRAG is designed to work on volumes which were formatted with MS-DOS'
 FORMAT.EXE, though other FAT16 creation utilities are expected to work as long
 as things are left at their defaults.
+
+Building and development:
+
+FRAG is built to compile with OpenWatcom C/C++ 2.0, targeting DOS. CMake is
+used for building, but simply compiling and linking all the source files should
+be sufficient. The included presets file hardcodes the OpenWatcom directory and
+will probably need to be tweaked.

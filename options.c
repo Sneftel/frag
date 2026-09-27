@@ -4,11 +4,11 @@
 #include <ctype.h>
 #include <stdio.h>
 
-char option_driveLetter = 'd';
-int option_fileCount = 512;
-int option_minRunLength = 16;
-int option_maxRunLength = 512;
-int option_utilizationPercentage = 75;
+char option_driveLetter = 0;
+unsigned option_fileCount = 511;
+unsigned option_minRunLength = 16;
+unsigned option_maxRunLength = 512;
+unsigned option_utilizationPercentage = 75;
 char* option_driveLabel = "FRAGME";
 
 void printUsage(char* arg0)
@@ -17,25 +17,25 @@ void printUsage(char* arg0)
         "FRAG: A tool for quickly and destructively creating fragmentation.\n"
         "CAUTION: THIS TOOL WILL DESTROY ALL DATA ON THE TARGET DRIVE.\n\n"
         "Usage:\n"
-        "\t%s [L:] [options] (where L is the drive letter, defaulting to D)\n\n"
+        "\t%s D: [options] (where D is the drive letter)\n\n"
         "Options:\n"
         "\t/a nnn  Set the minimum length in clusters of each run (default 16)\n"
         "\t/b nnn  Set the maximum length in clusters of each run (default 512)\n"
         "\t/c nnn  Set the number of files to create (default 512)\n"
         "\t/u pct  Set the percentage utilization target (default 75)\n"
-        "\t/l str  Set the expected drive label (default FRAGME)\n",
+        "\t/l str  Set the expected volume label (default FRAGME)\n",
         arg0);
 }
 
-static int processIntOption(int argc, char** argv, int* pi, int start, int minVal, int maxVal, int* out)
+static unsigned processUnsignedOption(int argc, char** argv, int* pi, int start, unsigned minVal, unsigned maxVal, unsigned* out)
 {
     char* buf;
     char* bufEnd;
-    long value;
+    unsigned long value;
 
     buf = argv[*pi] + start;
 
-    if(buf == '\0')
+    if(*buf == '\0')
     {
         if(*pi == argc)
         {
@@ -43,10 +43,10 @@ static int processIntOption(int argc, char** argv, int* pi, int start, int minVa
             return 0;
         }
 
-        buf = argv[*++pi];
+        buf = argv[++*pi];
     }
 
-    value = strtol(buf, &bufEnd, 10);
+    value = strtoul(buf, &bufEnd, 10);
 
     if(*bufEnd != '\0')
     {
@@ -54,48 +54,58 @@ static int processIntOption(int argc, char** argv, int* pi, int start, int minVa
         return 0;
     }
 
-    if(value < minVal || value > maxVal)
+    if(value < minVal)
     {
-        printf("Value %s out of range\n", buf);
+        printf("Value %lu below minimum of %u\n", value, minVal);
         return 0;
     }
 
-    *out = (int)value;
+    if(value > maxVal)
+    {
+        printf("Value %lu above maximum of %u\n", value, maxVal);
+        return 0;
+    }
+
+    *out = (unsigned)value;
     return 1;
 }
 
 int processOptions(int argc, char** argv)
 {
     int i;
-    for(i=0; i<argc; i++)
+    for(i=1; i<argc; i++)
     {
         if(argv[i][0] == '/' || argv[i][0] == '-')
         {
             switch(tolower(argv[i][1]))
             {
                 case 'c':
-                    if(!processIntOption(argc, argv, &i, 2, 1, 511, &option_fileCount))
+                    if(!processUnsignedOption(argc, argv, &i, 2, 1, 511, &option_fileCount))
                     {
                         return 0;
                     }
+                    break;
 
                 case 'a':
-                    if(!processIntOption(argc, argv, &i, 2, 1, 65535, &option_minRunLength))
+                    if(!processUnsignedOption(argc, argv, &i, 2, 1, 65535, &option_minRunLength))
                     {
                         return 0;
                     }
+                    break;
 
                 case 'b':
-                    if(!processIntOption(argc, argv, &i, 2, 1, 65535, &option_maxRunLength))
+                    if(!processUnsignedOption(argc, argv, &i, 2, 1, 65535, &option_maxRunLength))
                     {
                         return 0;
                     }
+                    break;
                 
                 case 'u':
-                    if(!processIntOption(argc, argv, &i, 2, 1, 100, &option_utilizationPercentage))
+                    if(!processUnsignedOption(argc, argv, &i, 2, 0, 100, &option_utilizationPercentage))
                     {
                         return 0;
                     }
+                    break;
 
                 case 'l':
                     if(argv[i][2] == '\0')
@@ -127,6 +137,12 @@ int processOptions(int argc, char** argv)
             printf("Unknown option %s\n", argv[i]);
             return 0;
         }
+    }
+
+    if(option_driveLetter == 0)
+    {
+        printf("Drive letter not specified\n");
+        return 0;
     }
 
     return 1;

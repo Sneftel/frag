@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "bitfield.h"
 #include "drvinfo.h"
@@ -79,16 +80,23 @@ int main(int argc, char** argv)
 
     if(option_fileCount > driveInfo.numDirectoryEntries-1)
     {
-        printf("File count of %d requested, max is %d", option_fileCount, driveInfo.numDirectoryEntries-1);
+        printf("File count of %d requested, max on this drive is %d", option_fileCount, driveInfo.numDirectoryEntries-1);
+        exit(1);
     }
 
     numFreeClusters = driveInfo.numClusters - 2; /* Account for reserved clusters */
     // Targeting 75% utilization
     targetNumFreeClusters = numFreeClusters * (100ul - option_utilizationPercentage) / 100;
-
-    layoutMaker = createLayoutMaker(&driveInfo);
+    if(targetNumFreeClusters == 0)
+    {
+        // Leave one free cluster so defrag can actually work
+        targetNumFreeClusters = 1;
+    }
 
     clustersAllocated = allocateBitfield(driveInfo.numClusters);
+
+    layoutMaker = createLayoutMaker(&driveInfo, option_fileCount);
+
     /* reserve first 2 clusters */
     setBits(clustersAllocated, 0, 2);
 
@@ -109,11 +117,16 @@ int main(int argc, char** argv)
         else
         {
             desiredNumClustersToFill = (rand() % (option_maxRunLength-option_minRunLength)) + option_minRunLength;
+            if(desiredNumClustersToFill >= numFreeClusters)
+            {
+                // Leave one free cluster so defrag can actually work
+                desiredNumClustersToFill = numFreeClusters - 1;
+            }
         }
 
         sampleFreeSpace(clustersAllocated, driveInfo.numClusters, desiredNumClustersToFill, &startCluster, &numClustersToFill);
 
-        entryIndex = rand() % (option_fileCount-1) + 1;
+        entryIndex = rand() % option_fileCount;
 
         for(i=0; i<numClustersToFill; i++)
         {

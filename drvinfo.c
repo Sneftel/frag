@@ -37,7 +37,17 @@ struct DriveInfo getDriveInfo(unsigned char driveNumber)
     }
     
     strncpy(driveInfo.volumeLabel, bootSector.volumeLabel, 11);
-    driveInfo.volumeLabel[11] = '\0';
+    for(i=10; i>=0; --i)
+    {
+        if(driveInfo.volumeLabel[i] == ' ')
+        {
+            driveInfo.volumeLabel[i] = '\0';
+        }
+        else
+        {
+            break;
+        }
+    }
 
     if(strncmp(bootSector.fsType, "FAT16", 5) != 0)
     {

@@ -21,17 +21,19 @@ struct FileInfo
 struct LayoutMaker
 {
     struct DriveInfo* origDriveInfo;
+    int numFileInfos;
     struct FileInfo* fileInfos;
     unsigned int huge* fat;
 };
 
-struct LayoutMaker* createLayoutMaker(struct DriveInfo* origDriveInfo)
+struct LayoutMaker* createLayoutMaker(struct DriveInfo* origDriveInfo, int numFileInfos)
 {
     struct LayoutMaker* layoutMaker;
     layoutMaker = malloc(sizeof(struct LayoutMaker));
 
     layoutMaker->origDriveInfo = origDriveInfo;
-    layoutMaker->fileInfos = malloc(sizeof(struct FileInfo) * origDriveInfo->numDirectoryEntries);
+    layoutMaker->numFileInfos = numFileInfos;
+    layoutMaker->fileInfos = malloc(sizeof(struct FileInfo) * numFileInfos);
     assert(layoutMaker->fileInfos);
 
     memset(layoutMaker->fileInfos, 0, sizeof(struct FileInfo) * origDriveInfo->numDirectoryEntries);
@@ -39,7 +41,7 @@ struct LayoutMaker* createLayoutMaker(struct DriveInfo* origDriveInfo)
     layoutMaker->fat = halloc(origDriveInfo->numClusters, sizeof(unsigned int)); /* inits to 0 */
     layoutMaker->fat[0] = 0xFFF8u;
     layoutMaker->fat[1] = 0xFFFFu;
-
+    
     return layoutMaker;
 }
 
@@ -50,7 +52,7 @@ void assignClusterToEntry(struct LayoutMaker* layoutMaker, unsigned int clusterI
 {
     struct FileInfo* fileInfo = layoutMaker->fileInfos+entryIndex;
     assert(clusterIndex < layoutMaker->origDriveInfo->numClusters);
-    assert(entryIndex != 0);
+    assert(entryIndex < layoutMaker->numFileInfos);
 
     if(fileInfo->firstCluster == 0)
     {
@@ -67,9 +69,10 @@ void assignClusterToEntry(struct LayoutMaker* layoutMaker, unsigned int clusterI
     fileInfo->numClusters++;
 }
 
+static struct DirectoryEntry directoryEntries[512];
+
 void applyLayout(struct LayoutMaker* layoutMaker)
 {
-    struct DirectoryEntry* directoryEntries;
     unsigned long rootDirectorySectorBase;
     unsigned int i, j;
     unsigned long clusterSize;
@@ -78,23 +81,22 @@ void applyLayout(struct LayoutMaker* layoutMaker)
 
     /* update root directory entries */
     rootDirectorySectorBase = 1 + layoutMaker->origDriveInfo->numFatCopies * layoutMaker->origDriveInfo->numSectorsPerFat;
-    directoryEntries = calloc(sizeof(struct DirectoryEntry), layoutMaker->origDriveInfo->numDirectoryEntries);
+    memset(directoryEntries, 0, sizeof(directoryEntries));
 
-    /* Entry 0 filled with volume label */
-    strncpy(directoryEntries[0].filename, option_driveLabel, 11);
+    /* Entry 0 filled with volume label, right-padded with spaces */
+    snprintf(directoryEntries[0].filename, 11, "%-11s", option_driveLabel);
     directoryEntries[0].attributes = 0x8; // volume label flag
 
-    for(i=1; i<layoutMaker->origDriveInfo->numDirectoryEntries; i++)
+    /* Other entries offset by 1 */
+    for(i=0; i<layoutMaker->numFileInfos; i++)
     {
         /* Fills filename and extension.*/
-        snprintf(directoryEntries[i].filename, 11, "%08d000", i);
-        directoryEntries[i].firstCluster = layoutMaker->fileInfos[i].firstCluster;
-        directoryEntries[i].fileSize = layoutMaker->fileInfos[i].numClusters * clusterSize;
+        snprintf(directoryEntries[i+1].filename, 11, "%08d000", i);
+        directoryEntries[i+1].firstCluster = layoutMaker->fileInfos[i].firstCluster;
+        directoryEntries[i+1].fileSize = layoutMaker->fileInfos[i].numClusters * clusterSize;
     }
 
     abswrite(layoutMaker->origDriveInfo->driveNumber, calcRootDirectorySectors(layoutMaker->origDriveInfo->numDirectoryEntries), rootDirectorySectorBase, directoryEntries);
-    free(directoryEntries);
-    directoryEntries = 0;
 
     /* write fat, a sector at a time */
     for(i=0; i<layoutMaker->origDriveInfo->numSectorsPerFat; i++)

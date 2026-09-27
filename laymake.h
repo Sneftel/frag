@@ -6,7 +6,7 @@
 struct LayoutMaker;
 
 /** Create a ready-to-fill layout maker, given (original) information about the drive which it will apply to */
-struct LayoutMaker* createLayoutMaker(struct DriveInfo* origDriveInfo);
+struct LayoutMaker* createLayoutMaker(struct DriveInfo* origDriveInfo, int numFileInfos);
 
 /** Allocate the next unallocated cluster on to the end of the cluster chain for the file with the given entry index. */
 void assignClusterToEntry(struct LayoutMaker* layoutMaker, unsigned int clusterIndex, unsigned int entryIndex);

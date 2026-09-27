@@ -1,9 +1,9 @@
 
 extern char option_driveLetter;
-extern int option_fileCount;
-extern int option_minRunLength;
-extern int option_maxRunLength;
-extern int option_utilizationPercentage;
+extern unsigned option_fileCount;
+extern unsigned option_minRunLength;
+extern unsigned option_maxRunLength;
+extern unsigned option_utilizationPercentage;
 extern char* option_driveLabel;
 
 void printUsage(char* arg0);

@@ -63,6 +63,20 @@ int main(int argc, char** argv)
         exit(1);
     }
 
+    if(!option_suppressConfirmation)
+    {
+        char answer;
+        printf(
+            "This operation will DESTROY all data on drive %c.\n"
+            "Do you want to proceed (y/n)? ", option_driveLetter);
+        scanf("%c", &answer);
+        if(answer != 'y' && answer != "Y")
+        {
+            printf("Cancelling.\n");
+            exit(1);
+        }
+    }
+
     printf("Initializing...\n");
 
     /* invalidate buffers in case the FAT is cached */

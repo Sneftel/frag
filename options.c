@@ -10,6 +10,7 @@ unsigned option_minRunLength = 16;
 unsigned option_maxRunLength = 512;
 unsigned option_utilizationPercentage = 75;
 char* option_driveLabel = "FRAGME";
+char option_suppressConfirmation = 0;
 
 void printUsage(char* arg0)
 {
@@ -23,7 +24,8 @@ void printUsage(char* arg0)
         "\t/b nnn  Set the maximum length in clusters of each run (default 512)\n"
         "\t/c nnn  Set the number of files to create (default 512)\n"
         "\t/u pct  Set the percentage utilization target (default 75)\n"
-        "\t/l str  Set the expected volume label (default FRAGME)\n",
+        "\t/l str  Set the expected volume label (default FRAGME)\n"
+        "\t/y      Suppress the confirmation query\n",
         arg0);
 }
 
@@ -121,6 +123,10 @@ int processOptions(int argc, char** argv)
                     {
                         option_driveLabel = argv[i]+2;
                     }
+                    break;
+
+                case 'y':
+                    option_suppressConfirmation = 1;
                     break;
                 
                 default:

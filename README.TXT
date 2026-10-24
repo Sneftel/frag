@@ -10,7 +10,8 @@ existing files are removed and their content becomes effectively inaccessible
 on a volume containing data you care about.
 
 For safety, the label of the chosen volume must be specified on the command
-line, unless it is "FRAGME".
+line, unless it is "FRAGME". The user is also prompted to confirm the operation
+unless the /y switch is provided.
 
 The volume is "filled" pseudorandomly, in patterns loosely approximating real-
 world fragmentation. The volume starts out empty. In a loop a random file is
@@ -36,6 +37,7 @@ Options:
     /c nnn  Set the number of files to create (default 512)
     /u pct  Set the percentage utilization target (default 75)
     /l str  Set the expected volume label (default FRAGME)
+    /y      Suppress the confirmation query.
 
 FAT12 and FAT32 volumes are not (yet) supported. Certain unusual features of
 FAT16, such as unusual numbers of reserved sectors, are not supported either.

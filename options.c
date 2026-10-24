@@ -136,7 +136,7 @@ int processOptions(int argc, char** argv)
         }
         else if(isalpha(argv[i][0]) && argv[i][1] == ':' && argv[i][2] == '\0')
         {
-            option_driveLetter = tolower(argv[i][0]);
+            option_driveLetter = toupper(argv[i][0]);
         }
         else
         {

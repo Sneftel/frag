@@ -84,7 +84,7 @@ int main(int argc, char** argv)
 
     randomize();
 
-    driveInfo = getDriveInfo(3); /* D drive */
+    driveInfo = getDriveInfo(option_driveLetter - 'A');
 
     if(strcmp(driveInfo.volumeLabel, option_driveLabel) != 0)
     {
